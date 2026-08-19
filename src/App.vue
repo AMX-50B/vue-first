@@ -5,9 +5,9 @@ import { RouterView,RouterLink,useRoute } from 'vue-router';
 const route = useRoute()
 
 const navigation = [
-  { name: '概览', description: '学习数据总览',path:'/home' },
-  { name: '管理', description: '管理识字内容',path:'/manage' },
-  { name: '识字', description: '识字页',path:'/show' }
+  { id:'home',name: '概览', description: '学习数据总览',path:'/home' },
+  { id:'manage',name: '管理', description: '管理识字内容',path:'/manage' },
+  { id:'show',name: '识字', description: '识字页',path:'/show' }
 ]
 
 const activePage = computed(() => {
@@ -27,8 +27,8 @@ const activePage = computed(() => {
       <nav class="navigation" aria-label="主导航">
         <RouterLink
           v-for="item in navigation"
-          :key="item.name"
-          :to="item.path"
+          :key="item.id"
+          :to="{name:item.id}"
           :class="{ active: route.path === item.path }">
           {{ item.name }}
         </RouterLink>

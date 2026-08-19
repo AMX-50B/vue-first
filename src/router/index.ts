@@ -6,9 +6,9 @@ import Show from '@/views/Show.vue';
 const router = createRouter({
     history:createWebHashHistory(),
     routes:[
-        {path:'/home',component:Home},
-        {path:'/manage',component:ClassManage},
-        {path:'/show',component:Show},
+        {name:'home',path:'/home',component:Home},
+        {name:'manage',path:'/manage',component:ClassManage},
+        {name:'show',path:'/show',component:Show},
     ]
 })
 
