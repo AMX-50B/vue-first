@@ -1,5 +1,5 @@
 <template>
-  <main :class="['literacy-page', { 'has-structure': isStructureOpen }]">
+  <main ref="literacyPage" :class="['literacy-page', { 'has-structure': isStructureOpen }]">
     <p class="word" aria-live="polite">{{ word }}</p>
 
     <div class="corner-actions">
@@ -9,6 +9,9 @@
         @click="isStructureOpen ? closeStructure() : openStructure()"
       >
         拆字
+      </button>
+      <button type="button" :aria-pressed="isFullscreen" @click="toggleFullscreen">
+        {{ isFullscreen ? '退出全屏' : '全屏' }}
       </button>
       <button type="button" @click="openEditor">修改</button>
     </div>
@@ -79,7 +82,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, nextTick, ref } from 'vue'
+import { computed, nextTick, onBeforeUnmount, onMounted, ref } from 'vue'
 
 type CharacterStructure = {
   type: string
@@ -160,6 +163,8 @@ const draftParts = ref('人')
 const draftStrokes = ref('丿 + ㇏')
 const isEditorOpen = ref(false)
 const isStructureOpen = ref(false)
+const isFullscreen = ref(false)
+const literacyPage = ref<HTMLElement | null>(null)
 const wordInput = ref<HTMLInputElement | null>(null)
 const customStructures = ref<Record<string, CharacterStructure>>({})
 
@@ -206,6 +211,32 @@ function closeStructure() {
   isStructureOpen.value = false
 }
 
+async function toggleFullscreen() {
+  if (!literacyPage.value) return
+
+  if (document.fullscreenElement === literacyPage.value) {
+    await document.exitFullscreen()
+    return
+  }
+
+  await literacyPage.value.requestFullscreen()
+}
+
+function syncFullscreenState() {
+  isFullscreen.value = document.fullscreenElement === literacyPage.value
+}
+
+onMounted(() => {
+  document.addEventListener('fullscreenchange', syncFullscreenState)
+})
+
+onBeforeUnmount(() => {
+  document.removeEventListener('fullscreenchange', syncFullscreenState)
+  if (document.fullscreenElement === literacyPage.value) {
+    void document.exitFullscreen()
+  }
+})
+
 function getParts(character: string) {
   const parts = draftParts.value.split(/[+＋、，,\s]+/).filter(Boolean)
   return parts.length ? parts : [character]
@@ -233,32 +264,28 @@ function saveWord() {
 </script>
 
 <style scoped>
-:global(html),
-:global(body),
-:global(#app) {
-  width: 100%;
-  min-height: 100%;
-  margin: 0;
-}
-
-:global(body) {
-  overflow: hidden;
-}
-
-:global(button),
-:global(input),
-:global(select) {
+.literacy-page button,
+.literacy-page input,
+.literacy-page select {
   font: inherit;
 }
 
 .literacy-page {
-  position: fixed;
-  inset: 0;
+  position: relative;
+  width: 100%;
+  min-height: clamp(30rem, calc(100dvh - 11.5rem), 48rem);
+  overflow: hidden;
   display: grid;
   grid-template-columns: minmax(0, 1fr);
   place-items: center;
   background: #ffffff;
   color: #000000;
+}
+
+.literacy-page:fullscreen {
+  width: 100%;
+  min-height: 100%;
+  height: 100%;
 }
 
 .literacy-page.has-structure {
@@ -288,9 +315,9 @@ function saveWord() {
 }
 
 .corner-actions {
-  position: fixed;
-  right: max(1.25rem, env(safe-area-inset-right));
-  bottom: max(1.25rem, env(safe-area-inset-bottom));
+  position: absolute;
+  right: 1.25rem;
+  bottom: 1.25rem;
   display: flex;
   gap: 0.5rem;
 }
@@ -304,7 +331,7 @@ select:focus-visible {
 }
 
 .dialog-backdrop {
-  position: fixed;
+  position: absolute;
   inset: 0;
   display: grid;
   place-items: center;
