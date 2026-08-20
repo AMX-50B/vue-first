@@ -11,6 +11,7 @@ import emitter from '@/utils/emitter';
 
 let packet = ref('toy');
 
+defineExpose({packet})
 </script>
 <style scoped>
 </style>

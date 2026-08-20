@@ -4,14 +4,19 @@
         <p>packet: {{ packet }}</p>
         <p>Father packet: {{ pc }}</p>
         <p>Boy packet: {{ boyPacket }}</p>
-        <button @click="childPacket(packet)">function send</button>
-        <button @click="emit('custom-event', packet)">emit custom event</button>
+        <!-- <button @click="childPacket(packet)">function send</button> -->
+        <!-- <button @click="emit('custom-event', packet)">emit custom event</button> -->
+         <button @click="updateFather($parent)">updateParent</button>
+    </div>
+    <div>
+        <Sun v-bind="$attrs"/>
     </div>
    
 </template>
 <script setup lang="ts" name="Child">
 import { ref, onUnmounted } from 'vue';
 import emitter from '@/utils/emitter';
+import Sun from './Sun.vue';
 
 let packet = ref('toy');
 let boyPacket = ref('');
@@ -27,6 +32,12 @@ onUnmounted(()=>{
     emitter.off('boy-show-packet', getBoyPacket);
 })
 
+function updateFather(parent:any){
+    console.log(parent)
+    parent.packet = 'money from child'
+}
+
+defineExpose({packet})
 defineProps([ 'pc','childPacket'])
 const emit = defineEmits(['custom-event'])
 </script>
